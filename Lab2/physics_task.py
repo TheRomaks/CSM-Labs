@@ -2,6 +2,7 @@ import sys
 import base64
 import io
 import numpy as np
+import csv
 from matplotlib import pyplot as plt
 from scipy.integrate import odeint
 from PySide6.QtWidgets import (
@@ -41,6 +42,12 @@ def drop_ball_in_liquid(r, g, ball_density, liquid_density, mu, h):
         v = v[:stop_idx]
         h_arr = h_arr[:stop_idx]
 
+    with open('results.csv', 'w', newline='') as csvfile:
+        csv_writer = csv.writer(csvfile)
+        csv_writer.writerow(['Time (s)', 'Velocity (m/s)', 'Height (m)'])
+        for t, velocity, height in zip(time, v, h_arr):
+            csv_writer.writerow([t, velocity, height])
+
     plt.figure(figsize=(10, 5))
     plt.subplot(1, 2, 1)
     plt.plot(time, v, label='Скорость')
@@ -59,6 +66,7 @@ def drop_ball_in_liquid(r, g, ball_density, liquid_density, mu, h):
     buf.seek(0)
     img_b64 = base64.b64encode(buf.read()).decode('utf-8')
     buf.close()
+
     return img_b64
 
 class MainWindow(QMainWindow):
