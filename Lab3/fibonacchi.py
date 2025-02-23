@@ -1,5 +1,9 @@
 import math
 
+import numpy as np
+from matplotlib import pyplot as plt
+
+
 def f(x):
     return (x ** 2 - 2 * x + 2) * math.exp(-x)
 
@@ -10,7 +14,7 @@ def generate_fibonacci(n):
     return fib
 
 
-def fibonacci_search(a, b, epsilon, mode="min"):
+def fibonacci_search(a, b, epsilon, extr="min"):
     n = 1
     while True:
         fib = generate_fibonacci(n)
@@ -23,7 +27,7 @@ def fibonacci_search(a, b, epsilon, mode="min"):
     x2 = a + (b - a) * fib[n - 1] / fib[n]
 
     for i in range(n - 1):
-        if mode == "min":
+        if extr == "min":
             if f(x1) < f(x2):
                 b = x2
                 x2 = x1
@@ -32,7 +36,7 @@ def fibonacci_search(a, b, epsilon, mode="min"):
                 a = x1
                 x1 = x2
                 x2 = a + (b - a) * fib[n - i - 2] / fib[n - i - 1]
-        elif mode == "max":
+        elif extr == "max":
             if f(x1) > f(x2):
                 b = x2
                 x2 = x1
@@ -42,15 +46,15 @@ def fibonacci_search(a, b, epsilon, mode="min"):
                 x1 = x2
                 x2 = a + (b - a) * fib[n - i - 2] / fib[n - i - 1]
         else:
-            raise ValueError("mode должен быть 'min' или 'max'")
+            raise ValueError("extr должен быть 'min' или 'max'")
 
     return (a + b) / 2
 
 
 def fibonacci_search_both(a, b, epsilon):
 
-    candidate_min = fibonacci_search(a, b, epsilon, mode="min")
-    candidate_max = fibonacci_search(a, b, epsilon, mode="max")
+    candidate_min = fibonacci_search(a, b, epsilon, extr="min")
+    candidate_max = fibonacci_search(a, b, epsilon, extr="max")
 
     # points = [
     #     (a, f(a)),
@@ -70,7 +74,7 @@ def fibonacci_search_both(a, b, epsilon):
 
 
 
-a = -500
+a = -1.35
 b = 20
 epsilon = 0.01
 
@@ -78,3 +82,23 @@ global_min, global_max = fibonacci_search_both(a, b, epsilon)
 
 print(f"Глобальный минимум: x = {global_min[0]:.4f}, f(x) = {global_min[1]:.4f}")
 print(f"Глобальный максимум: x = {global_max[0]:.4f}, f(x) = {global_max[1]:.4f}")
+
+x_values = np.linspace(a, b, 1000)
+y_values = [f(x) for x in x_values]
+
+plt.figure(figsize=(12, 8))
+plt.plot(x_values, y_values, label='f(x)')
+
+plt.plot(global_min[0], global_min[1], 'go', markersize=10, label='Глобальный минимум')
+plt.plot(global_max[0], global_max[1], 'ro', markersize=10, label='Глобальный максимум')
+
+plt.xlabel('x')
+plt.ylabel('y')
+plt.title('График функции f(x) с глобальными экстремумами')
+plt.grid(True)
+plt.legend()
+
+plt.ylim(-10, 25)
+plt.xlim(-25, 50)
+
+plt.show()
