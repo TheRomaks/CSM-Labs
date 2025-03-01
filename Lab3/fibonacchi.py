@@ -1,5 +1,4 @@
 import math
-
 import numpy as np
 from matplotlib import pyplot as plt
 
@@ -74,7 +73,7 @@ def fibonacci_search_both(a, b, epsilon):
 
 
 
-a = -1.35
+a = -3
 b = 20
 epsilon = 0.01
 
@@ -98,7 +97,7 @@ plt.title('График функции f(x) с глобальными экстр
 plt.grid(True)
 plt.legend()
 
-plt.ylim(-10, 25)
-plt.xlim(-25, 50)
+# plt.ylim(-10, 25)
+# plt.xlim(-25, 50)
 
 plt.show()

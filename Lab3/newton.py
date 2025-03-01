@@ -1,7 +1,7 @@
 import math
-import numpy as np
-from matplotlib import pyplot as plt
 from scipy.optimize import newton
+import numpy as np
+import matplotlib.pyplot as plt
 
 
 def f(x):
@@ -40,7 +40,7 @@ def classify_critical_point(x):
         return "неопределён"
 
 
-start_range = -3
+start_range = -2
 end_range = 20
 
 critical_points = newton_method(start_range, end_range)
@@ -50,7 +50,7 @@ for cp in critical_points:
     classification = classify_critical_point(cp)
     print(f"  x = {cp:.4f}: {classification}")
 
-x_values = np.linspace(start_range, end_range, 500)
+x_values = np.linspace(start_range, end_range, 1000)
 x_values_filtered = [x for x in x_values if abs(1 + np.sin(x)) > 1e-3]
 y_values = [f(x) for x in x_values_filtered]
 
@@ -76,3 +76,6 @@ plt.ylim(-10, 25)
 plt.xlim(-25, 50)
 
 plt.show()
+
+
+
