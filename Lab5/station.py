@@ -1,53 +1,73 @@
 import math
 
-def mmn_no_limit_queue(lambda_, mu, n):
-    rho = lambda_ / (n * mu)
+class AnalyticalModel:
+    def __init__(self, arrival_rate, service_time, num_pumps):
+        self.lambda_ = arrival_rate
+        self.service_time = service_time
+        self.num_pumps = num_pumps
+        self.mu = 1.0 / service_time
 
-    sum_term = sum((n * rho) ** k / math.factorial(k) for k in range(n))
-    p0 = 1 / (sum_term + ((n * rho) ** n / (math.factorial(n) * (1 - rho))))
+    def mmn_no_limit_queue(self):
+        n = self.num_pumps
+        lambda_ = self.lambda_
+        mu = self.mu
+        rho = lambda_ / (n * mu)
 
-    ls = lambda_ / mu
+        sum_term = sum((n * rho) ** k / math.factorial(k) for k in range(n))
+        p0 = 1.0 / (sum_term + ((n * rho) ** n / (math.factorial(n) * (1 - rho))))
 
-    lq = ((n * rho) ** n * p0) / (math.factorial(n) * (1 - rho) ** 2)
+        Lq = ((n * rho) ** n * p0) / (math.factorial(n) * (1 - rho) ** 2)
+        Ls = Lq + lambda_ / mu
+        Wq = Lq / lambda_
 
-    wq = lq / lambda_
+        return {
+            "P0 (вероятность простоя)": p0,
+            "Lq (среднее число машин в очереди)": Lq,
+            "Ls (среднее число машин в системе)": Ls,
+            "Wq (среднее время ожидания в очереди, мин)": Wq
+        }
 
-    return {
-        "P0 (вероятность простоя)": p0,
-        "Lq (среднее число машин в очереди)": lq,
-        "Ls (среднее число машин в системе)": ls,
-        "Wq (среднее время ожидания в очереди)": wq,
-    }
+    def mmn_limited_queue(self, max_queue):
+        n = self.num_pumps
+        lambda_ = self.lambda_
+        mu = self.mu
+        rho = lambda_ / (n * mu)
+        K = n + max_queue
 
+        sum_term = sum((n * rho) ** k / math.factorial(k) for k in range(n))
+        sum_term += sum((n * rho) ** k / (math.factorial(n) * n ** (k - n)) for k in range(n, K + 1))
+        p0 = 1.0 / sum_term
+        Lq = sum((k - n) * ((n * rho) ** k / (math.factorial(n) * n ** (k - n))) * p0 for k in range(n, K + 1))
+        P_block = ((n * rho) ** K / (math.factorial(n) * n ** (K - n))) * p0
+        lambda_eff = lambda_ * (1 - P_block)
+        Ls = Lq + lambda_eff / mu
+        Wq = Lq / lambda_
 
-def mmn_limited_queue(lambda_, mu, n, max_queue):
-    rho = lambda_ / (n * mu)
+        return {
+            "P0 (вероятность простоя)": p0,
+            "Lq (среднее число машин в очереди)": Lq,
+            "Ls (среднее число машин в системе)": Ls,
+            "Wq (среднее время ожидания в очереди, мин)": Wq,
+            "P_block (вероятность отказа)": P_block
+        }
 
-    sum_term = sum((n * rho) ** k / math.factorial(k) for k in range(n))
-    sum_term += sum((n * rho) ** k / (math.factorial(n) * n ** (k - n)) for k in range(n, n + max_queue + 1))
-    p0 = 1 / sum_term
+def main():
+    lambda_arrival = 1
+    service_time = 3
+    num_pumps = 4
+    max_queue = 4
 
-    lq = sum((k - n) * ((n * rho) ** k / (math.factorial(n) * n ** (k - n))) * p0 for k in range(n, n + max_queue + 1))
-    wq = lq / lambda_
+    print("Аналитическая модель (без ограничения очереди):")
+    analytical_model = AnalyticalModel(lambda_arrival, service_time, num_pumps)
+    results_no_limit = analytical_model.mmn_no_limit_queue()
+    for key, value in results_no_limit.items():
+        print(f"{key}: {value:.4f}")
 
-    return {
-        "P0 (вероятность простоя)": p0,
-        "Lq (среднее число машин в очереди)": lq,
-        "Wq (среднее время ожидания в очереди)": wq,
-    }
+    print("\nАналитическая модель (с ограниченной очередью):")
+    results_limited = analytical_model.mmn_limited_queue(max_queue)
+    for key, value in results_limited.items():
+        print(f"{key}: {value:.4f}")
 
+if __name__ == '__main__':
+    main()
 
-lambda_ = 1  # машина в минуту
-mu = 1 / 3   # интенсивность обслуживания
-n = 4        # количество колонок
-max_queue = 4  # ограничение по очереди
-
-print("Система без ограничения очереди:")
-results_no_limit = mmn_no_limit_queue(lambda_, mu, n)
-for key, value in results_no_limit.items():
-    print(f"{key}: {value:.4f}")
-
-print("\nСистема с ограниченной очередью:")
-results_limited = mmn_limited_queue(lambda_, mu, n, max_queue)
-for key, value in results_limited.items():
-    print(f"{key}: {value:.4f}")

@@ -16,14 +16,18 @@ def newton_method(x0, eps, max_iter):
     for i in range(max_iter):
         fp = f_prime(x)
         fdp = f_double_prime(x)
+
         if abs(fdp) < 1e-10:
             print("Вторая производная близка к нулю, остановка метода Ньютона.")
-            break
+            return x, i + 1
+
         x_new = x - fp / fdp
+
         if abs(x_new - x) < eps:
-            return x_new
+            return x_new, i + 1
+
         x = x_new
-    return x
+    return x, max_iter
 
 def classify_critical_point(x):
     second = f_double_prime(x)
@@ -38,19 +42,21 @@ def find_global_extrema(a, b, critical_point):
     points = [(a, f(a)), (b, f(b))]
     if a <= critical_point <= b:
         points.append((critical_point, f(critical_point)))
+
     global_min = min(points, key=lambda point: point[1])
     global_max = max(points, key=lambda point: point[1])
     return global_min, global_max
 
 def compute_extrema(a, b, initial_guess, eps, max_iter):
-    cp = newton_method(initial_guess, eps, max_iter)
+    cp, newton_iters = newton_method(initial_guess, eps, max_iter)
     cp_type = classify_critical_point(cp)
     global_min, global_max = find_global_extrema(a, b, cp)
     return {
         "critical_point": cp,
         "critical_type": cp_type,
         "global_min": global_min,
-        "global_max": global_max
+        "global_max": global_max,
+        "iteration_count": newton_iters
     }
 
 def plot_function(a, b, extrema_data):
@@ -77,20 +83,24 @@ def plot_function(a, b, extrema_data):
     plt.grid(True)
     plt.show()
 
-a = -20
-b = 20
-initial_guess = 0
-eps = 1e-5
-max_iter = 100
+if __name__ == "__main__":
+    a = -3
+    b = 20
+    initial_guess = 0
+    eps = 1e-2
+    max_iter = 100
 
-extrema_data = compute_extrema(a, b, initial_guess, eps, max_iter)
+    extrema_data = compute_extrema(a, b, initial_guess, eps, max_iter)
 
-print(f"Найденная критическая точка: x = {extrema_data['critical_point']:.6f}")
-print(f"Значение в критической точке = {f(extrema_data['critical_point']):.6f}")
-print(f"Критическая точка является локальным {extrema_data['critical_type']}.")
+    print(f"Найденная критическая точка: x = {extrema_data['critical_point']:.6f}")
+    print(f"Значение f(x) в критической точке: {f(extrema_data['critical_point']):.6f}")
+    print(f"Критическая точка является локальным {extrema_data['critical_type']}.")
+    print(f"Число итераций метода Ньютона: {extrema_data['iteration_count']}")
 
-print("\nГлобальные экстремумы на отрезке:")
-print(f"Глобальный минимум: x = {extrema_data['global_min'][0]:.6f}, f(x) = {extrema_data['global_min'][1]:.6f}")
-print(f"Глобальный максимум: x = {extrema_data['global_max'][0]:.6f}, f(x) = {extrema_data['global_max'][1]:.6f}")
+    print("\nГлобальные экстремумы на отрезке:")
+    print(f"Глобальный минимум: x = {extrema_data['global_min'][0]:.6f}, "
+          f"f(x) = {extrema_data['global_min'][1]:.6f}")
+    print(f"Глобальный максимум: x = {extrema_data['global_max'][0]:.6f}, "
+          f"f(x) = {extrema_data['global_max'][1]:.6f}")
 
-plot_function(a, b, extrema_data)
+    plot_function(a, b, extrema_data)

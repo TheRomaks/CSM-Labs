@@ -1,4 +1,5 @@
 import sys
+
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QWidget, QTabWidget, QVBoxLayout, QHBoxLayout,
     QFormLayout, QDoubleSpinBox, QSpinBox, QCheckBox, QPushButton, QTextEdit,
@@ -8,6 +9,9 @@ from Lab4.analyze import analyze_distribution
 from Lab4.generator import QuadraticCongruentialGenerator
 from Lab5.diagnostics import run_analytical
 from Lab5.diagnostics_simpy import run_simulation
+from Lab5.station import AnalyticalModel
+from Lab5.station_simpy import SimulationModel
+
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -97,6 +101,55 @@ class MainWindow(QMainWindow):
         self.output_text.setReadOnly(True)
         main_layout.addWidget(self.output_text)
 
+        self.station_tab = QWidget()
+        self.tab_widget.addTab(self.station_tab, "Станция")
+        station_layout = QVBoxLayout(self.station_tab)
+
+        station_params_layout = QFormLayout()
+        self.station_lambda_input = QDoubleSpinBox()
+        self.station_lambda_input.setRange(0.01, 100.0)
+        self.station_lambda_input.setValue(1.0)
+        self.station_lambda_input.setSingleStep(0.1)
+        station_params_layout.addRow("λ (интенсивность поступления):", self.station_lambda_input)
+
+        self.station_service_time_input = QDoubleSpinBox()
+        self.station_service_time_input.setRange(0.01, 100.0)
+        self.station_service_time_input.setValue(3.0)
+        self.station_service_time_input.setSingleStep(0.1)
+        station_params_layout.addRow("Tобсл (время обслуживания):", self.station_service_time_input)
+
+        self.station_num_pumps_input = QSpinBox()
+        self.station_num_pumps_input.setRange(1, 100)
+        self.station_num_pumps_input.setValue(4)
+        station_params_layout.addRow("Число колонок:", self.station_num_pumps_input)
+
+        self.station_max_queue_input = QSpinBox()
+        self.station_max_queue_input.setRange(0, 100)
+        self.station_max_queue_input.setValue(4)
+        station_params_layout.addRow("Макс. длина очереди:", self.station_max_queue_input)
+
+        self.station_sim_time_input = QSpinBox()
+        self.station_sim_time_input.setRange(1, 10000)
+        self.station_sim_time_input.setValue(1000)
+        station_params_layout.addRow("Время симуляции (для SimPy):", self.station_sim_time_input)
+
+        station_layout.addLayout(station_params_layout)
+
+        station_buttons_layout = QHBoxLayout()
+        self.run_station_analytical_button = QPushButton("Выполнить аналитический расчёт")
+        self.run_station_analytical_button.clicked.connect(self.run_station_analytical)
+        station_buttons_layout.addWidget(self.run_station_analytical_button)
+
+        self.run_station_simulation_button = QPushButton("Запустить симуляцию (SimPy)")
+        self.run_station_simulation_button.clicked.connect(self.run_station_simulation)
+        station_buttons_layout.addWidget(self.run_station_simulation_button)
+
+        station_layout.addLayout(station_buttons_layout)
+
+        self.station_output_text = QTextEdit()
+        self.station_output_text.setReadOnly(True)
+        station_layout.addWidget(self.station_output_text)
+
     def run_calculations(self):
         try:
             lambda_rate = self.lambda_input.value()
@@ -168,6 +221,57 @@ class MainWindow(QMainWindow):
                 self.output_text.append(f"  Ожидаемый %: {expected_percentage:.2f}, Фактический %: {actual_percentage:.2f}\n")
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", str(e))
+
+    def run_station_analytical(self):
+        try:
+            lambda_val = self.station_lambda_input.value()
+            service_time = self.station_service_time_input.value()
+            num_pumps = self.station_num_pumps_input.value()
+            max_queue = self.station_max_queue_input.value()
+
+            model = AnalyticalModel(lambda_val, service_time, num_pumps)
+            results_no_limit = model.mmn_no_limit_queue()
+            results_limited = model.mmn_limited_queue(max_queue)
+
+            self.station_output_text.clear()
+            self.station_output_text.append("Аналитическая модель (без ограничения очереди):")
+            for key, value in results_no_limit.items():
+                self.station_output_text.append(f"{key}: {value:.4f}")
+            self.station_output_text.append("\nАналитическая модель (с ограниченной очередью):")
+            for key, value in results_limited.items():
+                self.station_output_text.append(f"{key}: {value:.4f}")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", str(e))
+
+    def run_station_simulation(self):
+        try:
+            lambda_val = self.station_lambda_input.value()
+            service_time = self.station_service_time_input.value()
+            num_pumps = self.station_num_pumps_input.value()
+            max_queue = self.station_max_queue_input.value()
+            sim_time = self.station_sim_time_input.value()
+
+            sim_model = SimulationModel(lambda_val, service_time, num_pumps, simulation_time=sim_time)
+            results_no_limit = sim_model.run_simulation(queue_limit=None)
+            results_limited = sim_model.run_simulation(queue_limit=max_queue)
+
+            self.station_output_text.clear()
+            self.station_output_text.append("Симуляция модели (без ограничения очереди):")
+            for key, value in results_no_limit.items():
+                if isinstance(value, int):
+                    self.station_output_text.append(f"{key}: {value}")
+                else:
+                    self.station_output_text.append(f"{key}: {value:.4f}")
+
+            self.station_output_text.append("\nСимуляция модели (с ограниченной очередью):")
+            for key, value in results_limited.items():
+                if isinstance(value, int):
+                    self.station_output_text.append(f"{key}: {value}")
+                else:
+                    self.station_output_text.append(f"{key}: {value:.4f}")
+        except Exception as e:
+            QMessageBox.critical(self, "Ошибка", str(e))
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

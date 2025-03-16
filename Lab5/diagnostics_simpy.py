@@ -1,7 +1,6 @@
 import simpy
 import random
 
-
 class DiagnosticPost:
     def __init__(self, env, lambda_rate, service_time):
         self.env = env
