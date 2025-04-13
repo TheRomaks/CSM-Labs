@@ -1,6 +1,3 @@
-# compare_iterations.py
-import numpy as np
-
 from fibonacchi import fibonacci_search_both
 from newton_math import compute_extrema
 

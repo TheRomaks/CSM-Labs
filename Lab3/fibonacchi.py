@@ -67,7 +67,7 @@ def fibonacci_search_both(a, b, epsilon):
     return (global_min[0], global_min[1], it_min), (global_max[0], global_max[1], it_max)
 
 if __name__ == "__main__":
-    a = -3
+    a = -600
     b = 20
     epsilon = 0.01
 

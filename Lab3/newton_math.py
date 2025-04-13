@@ -84,7 +84,7 @@ def plot_function(a, b, extrema_data):
     plt.show()
 
 if __name__ == "__main__":
-    a = -3
+    a = -700
     b = 20
     initial_guess = 0
     eps = 1e-2

@@ -3,12 +3,11 @@ import sys
 
 from PySide6.QtWidgets import (
     QApplication, QMainWindow, QVBoxLayout, QWidget,
-  QLineEdit, QPushButton, QFormLayout, QGraphicsScene, QGraphicsView, QMessageBox,
+    QLineEdit, QPushButton, QFormLayout, QGraphicsScene, QGraphicsView, QMessageBox,
 )
 from PySide6.QtGui import QImage, QPixmap
 from PySide6.QtCore import Qt
 from Lab2.physics_task import drop_ball_in_liquid
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -47,20 +46,29 @@ class MainWindow(QMainWindow):
 
     def perform_calculation_from_form(self):
         try:
-            r = float(self.r_input.text())
-            g = float(self.g_input.text())
-            ball_density = float(self.ball_density_input.text())
-            liquid_density = float(self.liquid_density_input.text())
-            mu = float(self.mu_input.text())
-            h = float(self.h_input.text())
+            r = self.validate_positive_float(self.r_input.text(), "Радиус шара")
+            g = self.validate_positive_float(self.g_input.text(), "Ускорение свободного падения")
+            ball_density = self.validate_positive_float(self.ball_density_input.text(), "Плотность шара")
+            liquid_density = self.validate_positive_float(self.liquid_density_input.text(), "Плотность жидкости")
+            mu = self.validate_positive_float(self.mu_input.text(), "Вязкость жидкости")
+            h = self.validate_positive_float(self.h_input.text(), "Начальная высота")
 
             img_b64 = drop_ball_in_liquid(r, g, ball_density, liquid_density, mu, h)
 
             self.display_image(img_b64)
-        except ValueError:
-            QMessageBox.critical(self, "Ошибка", "Введите корректные числовые значения.")
+        except ValueError as e:
+            QMessageBox.critical(self, "Ошибка", str(e))
         except Exception as e:
             QMessageBox.critical(self, "Ошибка", f"Произошла ошибка: {str(e)}")
+
+    def validate_positive_float(self, value, field_name):
+        try:
+            float_value = float(value)
+            if float_value < 0:
+                raise ValueError(f"{field_name} не может быть отрицательным.")
+            return float_value
+        except ValueError:
+            raise ValueError(f"Введите корректное положительное числовое значение для поля '{field_name}'.")
 
     def display_image(self, img_b64):
         img_data = base64.b64decode(img_b64)
@@ -71,7 +79,6 @@ class MainWindow(QMainWindow):
         scene.addPixmap(pixmap)
         self.graphics_view.setScene(scene)
         self.graphics_view.fitInView(scene.sceneRect(), Qt.AspectRatioMode.KeepAspectRatio)
-
 
 if __name__ == "__main__":
     app = QApplication(sys.argv)
