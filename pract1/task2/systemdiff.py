@@ -16,7 +16,6 @@ def solution(a,b,c,t0,t1,num_points):
 
     plt.figure(figsize=(10, 8))
 
-
     plt.subplot(221)
     plt.plot(x, y, lw=1)
     plt.title("Фазовый портрет")

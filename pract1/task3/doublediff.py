@@ -8,8 +8,8 @@ def system_y(y, t):
     dx2dt = np.cos(t) - 2*x2 - 3*x1
     return [dx1dt, dx2dt]
 
-def system_z(Z, t,a):
-    x1, x2 = Z
+def system_z(z, t, a):
+    x1, x2 = z
     dx1dt = x2
     dx2dt = a*(1 - x1**2)*x2 - x1
     return [dx1dt, dx2dt]
@@ -19,7 +19,7 @@ def solution(t_y0=0,t_y1=2*np.pi,t_z0=0,t_z1=30,num_points_y=1000,num_points_z=1
     t_z = np.linspace(t_z0, t_z1, num_points_z)
 
     Y0 = [0.0, 0.0]
-    Z0 = [0.0, 0.0]
+    Z0 = [2.0, 0.0]
 
     sol_y = odeint(system_y, Y0, t_y)
     sol_z = odeint(system_z, Z0, t_z,args=(a,))
@@ -38,7 +38,7 @@ def solution(t_y0=0,t_y1=2*np.pi,t_z0=0,t_z1=30,num_points_y=1000,num_points_z=1
     plt.subplot(1,2,2)
     plt.plot(t_z, sol_z[:, 0], label="z(t)", color="blue")
     plt.plot(t_z, sol_z[:, 1], label="z'(t)", color="red")
-    plt.title("z'' - (1-z^2)z' + z = 0")
+    plt.title("z'' - a*(1-z^2)z' + z = 0")
     plt.xlabel("t")
     plt.ylabel("Решение и его производная")
     plt.grid(True)

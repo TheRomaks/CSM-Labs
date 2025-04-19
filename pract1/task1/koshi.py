@@ -36,6 +36,7 @@ def solution(t0,t1,num_points):
     plt.grid(True)
 
     plt.tight_layout()
+    plt.savefig("Task1.png")
     plt.show()
 
 if __name__ == "__main__":
