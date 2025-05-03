@@ -165,15 +165,21 @@ class MainWindow(QMainWindow):
 
             gen = QuadraticCongruentialGenerator(a=a, b=b, c=c, m=m, x0=x0)
 
+            u1 = gen.next()
+            u2 = gen.next()
+
             self.output_text.clear()
             self.output_text.append("Сгенерированные значения (через генератор):")
-            lambda_gen = gen.next() * 0.5 + 0.25
-            t_obsl_gen = gen.next() * 1 + 0.7
-            self.output_text.append(f"λ = {lambda_gen:.2f}, Tобсл = {t_obsl_gen:.2f}\n")
+            lambda_gen = u1 * lambda_rate
+            t_obsl_gen = u2 * service_time
+            self.output_text.append(
+                f"Сгенерированные (масштаб на GUI): λ = {lambda_gen:.4f}  (u1={u1:.4f}), "
+                f"Tобсл = {t_obsl_gen:.4f}  (u2={u2:.4f})\n"
+            )
 
             if use_simpy:
                 self.output_text.append("Запуск симуляции с использованием SimPy:")
-                sim_results = run_simulation(lambda_rate, service_time, sim_time)
+                sim_results = run_simulation(lambda_gen, t_obsl_gen, sim_time)
                 self.output_text.append("Результаты симуляции (SimPy):")
                 self.output_text.append(f"P0 (вероятность простоя) = {sim_results['p0']:.4f}")
                 if sim_results['p_otkaza'] is not None:
@@ -186,7 +192,7 @@ class MainWindow(QMainWindow):
                     self.output_text.append("Нет поступивших автомобилей для расчёта Pотк.")
             else:
                 self.output_text.append("Выполнение аналитического расчёта (без SimPy):")
-                analytical_results = run_analytical(lambda_rate, service_time)
+                analytical_results = run_analytical(lambda_gen, t_obsl_gen)
                 self.output_text.append("Результаты аналитического расчёта:")
                 self.output_text.append(f"ro = {analytical_results['ro']:.4f}")
                 self.output_text.append(f"P0 (вероятность простоя) = {analytical_results['p0']:.4f}")
